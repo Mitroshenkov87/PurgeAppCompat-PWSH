@@ -1,13 +1,15 @@
-# PurgeAppCompat
+# PurgeAppCompat v2.2
 
 **Advanced PowerShell tool to purge legacy Application Compatibility features from Windows 11.**
 
-Removes unnecessary compatibility infrastructure (PCA, scheduled tasks, registry layers, and optionally `sysmain.sdb`) for users who only run modern software and want a cleaner Windows 11 experience in 2026.
+Removes unnecessary compatibility infrastructure (PCA service + policy, scheduled tasks, and registry layers) for users who only run modern software.
+
+> **Note:** Starting from v2.2 we **no longer touch** `sysmain.sdb`. This file is heavily protected by TrustedInstaller and SFC. Disabling the other compatibility components already gives excellent results without the risk of the file being restored or causing side effects.
 
 ## ⚠️ Warning
 
-- **Level 1** is destructive. It renames `sysmain.sdb` (Microsoft's main shim database). Some legacy installers and very old applications may stop working correctly.
-- **Always create a System Restore point** before using Level 1 (the script does this by default).
+- Level 1 is aggressive. It disables core compatibility mechanisms.
+- Always create a **System Restore point** before using Level 1 (script does this by default).
 - Intended primarily for **Windows 11** power users.
 
 ## Features
@@ -15,11 +17,11 @@ Removes unnecessary compatibility infrastructure (PCA, scheduled tasks, registry
 - Disables **Program Compatibility Assistant (PCA)** service and policy
 - Disables **Application Experience** scheduled tasks
 - Clears old compatibility **Layers** from registry
-- Optional nuclear purge of `sysmain.sdb`
 - Automatic **backups** + **System Restore point**
 - Beautiful interactive arrow-key menu
-- Full logging to file
+- Full logging
 - Safe restore mode (Level 3)
+- Does **not** touch the protected `sysmain.sdb` file
 
 ## Usage
 
@@ -29,71 +31,60 @@ Removes unnecessary compatibility infrastructure (PCA, scheduled tasks, registry
 .\PurgeAppCompat.ps1
 ```
 
-Use arrow keys to navigate, Enter to select.
+Use ↑↓ arrows and Enter.
 
 ### Non-Interactive
 
 ```powershell
-# Safe recommended purge (Level 2)
+# Safe recommended purge
 .\PurgeAppCompat.ps1 -Level 2
 
-# Full nuclear purge (Level 1) — use with caution
+# Full aggressive purge
 .\PurgeAppCompat.ps1 -Level 1 -Force
-
-# Skip System Restore point creation
-.\PurgeAppCompat.ps1 -Level 2 -NoRestorePoint
 ```
 
 ## Parameters
 
 | Parameter         | Description                                      |
 |-------------------|--------------------------------------------------|
-| `-Level`          | `1` = Nuclear Purge, `2` = Safe (default), `3` = Restore |
-| `-Force`          | Skip confirmation prompts                        |
-| `-NoRestorePoint` | Do not create a System Restore point             |
+| `-Level`          | `1` = Complete, `2` = Safe (default), `3` = Restore |
+| `-Force`          | Skip confirmations                               |
+| `-NoRestorePoint` | Skip System Restore point                        |
 
-## Levels Explained
+## Levels
 
-| Level | Name                    | What it does                                      | Risk     |
-|-------|-------------------------|---------------------------------------------------|----------|
-| 1     | Complete Purge (Nuclear)| Everything + renames `sysmain.sdb`                | High     |
-| 2     | Recommended Safe Purge  | Disables PCA, tasks, clears registry layers       | Low      |
-| 3     | Restore Defaults        | Re-enables everything                             | None     |
+| Level | Name              | Description                                      | Risk  |
+|-------|-------------------|--------------------------------------------------|-------|
+| 1     | Complete Purge    | Disables PCA + tasks + clears registry layers    | Medium|
+| 2     | Recommended Safe  | Same as Level 1 but with confirmations           | Low   |
+| 3     | Restore Defaults  | Re-enables everything                            | None  |
 
 ## Requirements
 
-- Windows 11 (recommended)
-- PowerShell 5.1 or PowerShell 7+
-- Administrator privileges
+- Windows 11 (best)
+- PowerShell 5.1+
+- Administrator rights
 
-## Backups & Recovery
+## Backups
 
 All backups are saved to `C:\AppCompatBackups\`:
 
-- Registry exports (`Registry\AppCompatFlags_*.reg`)
-- `sysmain.sdb` backups (when Level 1 is used) in `sysmain_YYYYMMDD_HHMMSS\`
-
-**To restore `sysmain.sdb` manually** after Level 1:  
-Rename `sysmain.sdb.DEAD` back to `sysmain.sdb` and reboot.
+- Registry exports
 
 ## Why PurgeAppCompat?
 
-Windows 11 still carries a significant amount of compatibility code from the Windows Vista/7 era. For users running only modern applications, this legacy layer is unnecessary overhead and a potential attack surface.
+Windows 11 still carries a lot of compatibility code from the Windows 7/Vista era. For users running only modern applications, this legacy layer is unnecessary overhead.
 
-PurgeAppCompat gives you precise control to remove it cleanly and safely.
+PurgeAppCompat gives you clean control without touching heavily protected system files like `sysmain.sdb`.
 
 ## Author & Credits
 
 Created with ❤️ by **Grok** for **Aleksandr Mitroshenkov** (@Mitroshenkov87)
 
-Original concept refined across iterations.
-
 ## License
 
-MIT License — feel free to use, modify and share.
+MIT License
 
 ---
 
-**Use responsibly.** This tool modifies core Windows compatibility mechanisms. Always have backups. 
-
-**Repository:** https://github.com/Mitroshenkov87/PurgeAppCompat
+**Use responsibly.** This tool modifies core Windows compatibility mechanisms.
